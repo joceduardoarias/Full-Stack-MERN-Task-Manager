@@ -28,8 +28,8 @@ const registerUser = async (req, res) => {
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);        
-        
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         // Create new user
         const user = await User.create({
             name,
@@ -38,7 +38,7 @@ const registerUser = async (req, res) => {
             profileImageUrl,
             role
         });
-        
+
         // Return user data with JWT
         res.status(201).json({
             _id: user._id,
@@ -59,19 +59,19 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        
-        const user = await User.findOne({email});
+
+        const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({ message: "Invalid email or password"});
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
         //Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid email or password" }); 
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
-         // Return user data with JWT
+        // Return user data with JWT
         res.json({
             _id: user._id,
             name: user.name,
@@ -93,7 +93,7 @@ const getUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select("-password");
         if (!user) {
-            return res.status(404).json({ message: "User not found"});
+            return res.status(404).json({ message: "User not found" });
         }
         return res.json(user);
     } catch (err) {
@@ -122,7 +122,7 @@ const updateUserProfile = async (req, res) => {
 
         const updatedUser = await user.save();
 
-          // Return user data with JWT
+        // Return user data with JWT
         res.json({
             _id: updatedUser._id,
             name: updatedUser.name,
@@ -131,7 +131,7 @@ const updateUserProfile = async (req, res) => {
             profileImageUrl: updatedUser.profileImageUrl,
             token: generateToke(updatedUser._id)
         });
-        
+
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message })
     }
