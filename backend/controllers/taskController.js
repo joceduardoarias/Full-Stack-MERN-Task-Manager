@@ -71,9 +71,7 @@ const getTask = async (req, res) => {
 // @route GET /api/task/:id
 // @acces Private
 const getTaskById = async (req, res) => {
-    try {
-        console.log("getTaskById");
-
+    try {        
         const task = await Task.findById(req.params.id).populate(
             "assignedTo",
             "name email profileImageUrl"
