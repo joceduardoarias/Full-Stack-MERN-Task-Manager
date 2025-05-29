@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const authRoutes = require("./routes/authRotes.js")
+const userRoutes = require("./routes/userRoutes.js");
 
 const mongoose = require('./config/db.js');
 
@@ -26,9 +27,10 @@ mongoose();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 // app.use("api/report", reportRoutes);
 // app.use("api/task", taskhRoutes);
-// app.use("api/user", userRoutes);
+
 
 // Start Server
 const PORT = process.env.PORT || 5000;
