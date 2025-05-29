@@ -13,7 +13,7 @@ const getTask = async (req, res) => {
         }
 
         let tasks;
-        if (req.task.role === "admin") {
+        if (req.user.role === "admin") {
             tasks = await Task.find(filter).populate(
                 "assignedTo",
                 "name email profileImageUrl"
@@ -30,26 +30,26 @@ const getTask = async (req, res) => {
         );
         // Status summary counts
         const allTasks = await Task.countDocuments(
-            req.task.role === "admin" ? {} : { assignedTo: req.task._id }
+            req.user.role === "admin" ? {} : { assignedTo: req.user._id }
         );
 
         const pendingTask = await Task.countDocuments({
             ...filter,
             status: "Pending",
-            ...(req.task.rol === "admin" && { assignedTo: req.task._id })
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
         });
 
 
         const inProgressTask = await Task.countDocuments({
             ...filter,
             status: "In Progress",
-            ...(req.task.rol === "admin" && { assignedTo: req.task._id })
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
         });
 
         const completedTask = await Task.countDocuments({
             ...filter,
             status: "completed",
-            ...(req.task.rol === "admin" && { assignedTo: req.task._id })
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
         });
 
         res.json({
@@ -71,7 +71,7 @@ const getTask = async (req, res) => {
 // @route GET /api/task/:id
 // @acces Private
 const getTaskById = async (req, res) => {
-    try {        
+    try {
         const task = await Task.findById(req.params.id).populate(
             "assignedTo",
             "name email profileImageUrl"
@@ -128,7 +128,7 @@ const updateTask = async (req, res) => {
     try {
         const task = await Task.findById(req.params.id);
         if (!task) {
-             return res.status(404).json({ message: "Task not Found" });
+            return res.status(404).json({ message: "Task not Found" });
         }
 
         task.title = req.body.title || task.title;
@@ -140,7 +140,7 @@ const updateTask = async (req, res) => {
 
         if (req.body.assignedTo) {
             if (!Array.isArray(req.body.assignedTo)) {
-                return res.status(400).json({ message: "assignedTo must be an array of user ID's" });
+                return res.status(400).json({ message: "assignedTo must be an array of task ID's" });
             }
         }
         const updatedTask = await task.save();
@@ -157,7 +157,14 @@ const updateTask = async (req, res) => {
 // @acces Private (Admin only)
 const deleteTask = async (req, res) => {
     try {
-        // const tasks = await 
+        const task = await Task.findById(req.params.id).select("-password");
+        if (!task) {
+            res.status(404).json({ message: "task not found" });
+        }
+
+        await Task.deleteOne({ _id: req.params.id });
+
+        return res.json({ message: "Task deleted succesfuly" });
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message })
     }
