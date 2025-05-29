@@ -5,7 +5,63 @@ const Task = require("../models/Task");
 // @acces Private
 const getTask = async (req, res) => {
     try {
-        // const tasks = await 
+        const { status } = req.query;
+        let filter = {};
+
+        if (status) {
+            filter.status = status;
+        }
+
+        let tasks;
+        if (req.user.role === "admin") {            
+            tasks = await Task.find(filter).populate(
+                "assignedTo",
+                "name email profileImageUrl"
+            );    
+        }
+        // Add completed todoCheckList count to each task
+        tasks = await Promise.all(
+            tasks.map(async (task) => {
+              const completedCount = task.todoCheckList.filter(
+                (item) => item.completed
+              ).length;
+              return { ...task._doc, completedTodoCount: completedCount}  
+            })
+        );
+        // Status summary counts
+        const allTasks = await Task.countDocuments(
+            req.user.role === "admin" ? {}: { assignedTo: req.user._id }
+        );
+        
+        const pendingTask = await Task.countDocuments({
+            ...filter,
+            status: "Pending",
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
+        });
+
+        
+        const inProgressTask = await Task.countDocuments({
+            ...filter,
+            status: "In Progress",
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
+        });
+
+        const completedTask = await Task.countDocuments({
+            ...filter,
+            status: "completed",
+            ...(req.user.rol === "admin" && { assignedTo: req.user._id })
+        });
+
+        res.json({
+            tasks,
+            statusSummary: {
+                all: allTasks,
+                pendingTask,
+                inProgressTask,
+                completedTask
+            }
+        });
+
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message })
     }
