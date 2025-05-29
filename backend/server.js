@@ -4,6 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const authRoutes = require("./routes/authRotes.js")
 const userRoutes = require("./routes/userRoutes.js");
+const taskRoutes = require("./routes/taskRoutes.js");
 
 const mongoose = require('./config/db.js');
 
@@ -29,7 +30,7 @@ mongoose();
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 // app.use("api/report", reportRoutes);
-// app.use("api/task", taskhRoutes);
+app.use("/api/task", taskRoutes);
 
 
 // Start Server
